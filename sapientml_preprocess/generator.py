@@ -34,7 +34,7 @@ INHIBITED_SYMBOL_PATTERN = re.compile(r"[\{\}\[\]\",:<'\\]+")
 
 
 template_env = Environment(
-    loader=FileSystemLoader(f"{os.path.dirname(__file__)}/../templates"), trim_blocks=True
+    loader=FileSystemLoader(f"{os.path.dirname(__file__)}/templates"), trim_blocks=True
 )
 
 
