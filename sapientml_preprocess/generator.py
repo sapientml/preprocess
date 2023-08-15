@@ -58,6 +58,21 @@ def _is_category_column(c):
         return False
 
 
+def _confirm_mixed_type(df: pd.DataFrame) -> list[str]:
+    mixed_df_cols = []
+    for df_col in df.columns:
+        df_per_col = df[df_col].replace([-np.inf, np.inf], np.nan)
+        df_per_col2 = df_per_col[df_per_col.notnull()]
+        types_per_col = pd.api.types.infer_dtype(df_per_col2)
+
+        is_strnum = _is_strnum_column(df[df_col])
+
+        if types_per_col == "mixed" or types_per_col == "mixed-integer" or (types_per_col == "string" and is_strnum):
+            mixed_df_cols.append(df_col)
+
+    return mixed_df_cols
+
+
 def _render(tpl, *args, **kwargs):
     code = tpl.render(*args, **kwargs)
     return "\n".join([line for line in code.split("\n") if len(line) > 0]) + "\n\n"
@@ -164,11 +179,7 @@ class Preprocess(CodeBlockGenerator):
         # handle mixed-type columns
         # split a columns into 2 columns, one column has only numeric, another columns has only string
         # this operation should be done before calculating meta features
-        dtypes = df.drop(task.target_columns, axis=1).apply(infer_dtype)
-        is_strnum = df.drop(task.target_columns, axis=1).apply(_is_strnum_column)
-        mix_typed_cols = dtypes[
-            dtypes.str.fullmatch("|".join(["mixed", "mixed-integer"])) | (dtypes.str.fullmatch("string") & is_strnum)
-        ].index.to_list()
+        mix_typed_cols = _confirm_mixed_type(df.drop(task.target_columns, axis=1))
         cols_numeric_and_string = []
         for col in mix_typed_cols:
             cols_numeric_and_string.append(col)
