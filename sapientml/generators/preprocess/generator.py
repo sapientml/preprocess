@@ -15,15 +15,14 @@
 import os
 import re
 from pathlib import Path
+from typing import Tuple
 
 import fasttext
 import MeCab
 import numpy as np
 import pandas as pd
 import requests
-from typing import Tuple
 from jinja2 import Environment, FileSystemLoader
-from pandas.api.types import infer_dtype
 from sapientml.generator import CodeBlockGenerator
 from sapientml.params import Code, Dataset, Task
 from sapientml.util.logging import setup_logger
@@ -33,9 +32,7 @@ logger = setup_logger()
 INHIBITED_SYMBOL_PATTERN = re.compile(r"[\{\}\[\]\",:<'\\]+")
 
 
-template_env = Environment(
-    loader=FileSystemLoader(f"{os.path.dirname(__file__)}/templates"), trim_blocks=True
-)
+template_env = Environment(loader=FileSystemLoader(f"{os.path.dirname(__file__)}/templates"), trim_blocks=True)
 
 
 def _is_strnum_column(c):
@@ -153,7 +150,9 @@ class Preprocess(CodeBlockGenerator):
                 f"Symbols that inhibit training and visualization will be removed from column name {str(cols_has_symbols)}."
             )
             df = df.rename(columns=lambda col: remove_symbols(col) if col in cols_has_symbols else col)
-            task.target_columns = [remove_symbols(col) if col in cols_has_symbols else col for col in task.target_columns]
+            task.target_columns = [
+                remove_symbols(col) if col in cols_has_symbols else col for col in task.target_columns
+            ]
             tpl = template_env.get_template("rename_columns.py.jinja")
             code.validation += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols)
             code.test += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols)
