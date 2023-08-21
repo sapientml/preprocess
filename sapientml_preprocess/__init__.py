@@ -13,5 +13,6 @@
 # limitations under the License.
 
 from .generator import Preprocess
+from .params import PreprocessConfig
 
-__all__ = ["Preprocess"]
+__all__ = ["Preprocess", "PreprocessConfig"]
