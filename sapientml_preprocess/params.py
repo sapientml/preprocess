@@ -1,4 +1,5 @@
-from typing import Union, Optional
+from typing import Optional, Union
+
 from sapientml.params import Config
 
 
