@@ -1,8 +1,8 @@
 # HANDLE JAPANESE TEXT
 import MeCab
 tokenizer = MeCab.Tagger()
-use_pos_list = {{ task.use_pos_list }}
-use_word_stemming = {{ task.use_word_stemming }}
+use_pos_list = {{ config.use_pos_list }}
+use_word_stemming = {{ config.use_word_stemming }}
 def tokenize(text, use_pos_list, use_word_stemming, tokenizer):
     node = tokenizer.parseToNode(text)
     terms = []

@@ -27,6 +27,8 @@ from sapientml.generator import CodeBlockGenerator
 from sapientml.params import Code, Dataset, Task
 from sapientml.util.logging import setup_logger
 
+from sapientml_preprocess.params import PreprocessConfig
+
 logger = setup_logger()
 
 INHIBITED_SYMBOL_PATTERN = re.compile(r"[\{\}\[\]\",:<'\\]+")
@@ -138,6 +140,9 @@ def remove_symbols(column_name: str) -> str:
 
 
 class Preprocess(CodeBlockGenerator):
+    def __init__(self, **kwargs):
+        self.config = PreprocessConfig(**kwargs)
+
     def generate_code(self, dataset: Dataset, task: Task) -> Tuple[Dataset, Code]:
         code = Code()
         df = pd.concat(dataset.get_dataframes()).reset_index(drop=True)
@@ -216,12 +221,12 @@ class Preprocess(CodeBlockGenerator):
             tokenizer = MeCab.Tagger()
             for col in cols_japanese_text:
                 df[col] = df[col].fillna("")
-                df[col] = df[col].apply(lambda x: tokenize(x, task.use_pos_list, task.use_word_stemming, tokenizer))
+                df[col] = df[col].apply(lambda x: tokenize(x, self.config.use_pos_list, self.config.use_word_stemming, tokenizer))
             tpl = template_env.get_template("handle_japanese_text.py.jinja")
-            code.validation += _render(tpl, task=task, training=True, test=True, cols_japanese_text=cols_japanese_text)
-            code.test += _render(tpl, task=task, training=True, test=True, cols_japanese_text=cols_japanese_text)
-            code.train += _render(tpl, task=task, training=True, test=False, cols_japanese_text=cols_japanese_text)
-            code.predict += _render(tpl, task=task, training=False, test=True, cols_japanese_text=cols_japanese_text)
+            code.validation += _render(tpl, config=self.config, training=True, test=True, cols_japanese_text=cols_japanese_text)
+            code.test += _render(tpl, config=self.config, training=True, test=True, cols_japanese_text=cols_japanese_text)
+            code.train += _render(tpl, config=self.config, training=True, test=False, cols_japanese_text=cols_japanese_text)
+            code.predict += _render(tpl, config=self.config, training=False, test=True, cols_japanese_text=cols_japanese_text)
 
         dataset.training_dataframe = df
 
