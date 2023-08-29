@@ -26,7 +26,6 @@ from jinja2 import Environment, FileSystemLoader
 from sapientml.generator import CodeBlockGenerator
 from sapientml.params import Code, Dataset, Task
 from sapientml.util.logging import setup_logger
-
 from sapientml_preprocess.params import PreprocessConfig
 
 logger = setup_logger()
@@ -221,12 +220,31 @@ class Preprocess(CodeBlockGenerator):
             tokenizer = MeCab.Tagger()
             for col in cols_japanese_text:
                 df[col] = df[col].fillna("")
-                df[col] = df[col].apply(lambda x: tokenize(x, self.config.use_pos_list, self.config.use_word_stemming, tokenizer))
+                df[col] = df[col].apply(
+                    lambda x: tokenize(x, self.config.use_pos_list, self.config.use_word_stemming, tokenizer)
+                )
             tpl = template_env.get_template("handle_japanese_text.py.jinja")
-            code.validation += _render(tpl, config=self.config, training=True, test=True, cols_japanese_text=cols_japanese_text)
-            code.test += _render(tpl, config=self.config, training=True, test=True, cols_japanese_text=cols_japanese_text)
-            code.train += _render(tpl, config=self.config, training=True, test=False, cols_japanese_text=cols_japanese_text)
-            code.predict += _render(tpl, config=self.config, training=False, test=True, cols_japanese_text=cols_japanese_text)
+            code.validation += _render(
+                tpl, config=self.config, training=True, test=True, cols_japanese_text=cols_japanese_text
+            )
+            code.test += _render(
+                tpl, config=self.config, training=True, test=True, cols_japanese_text=cols_japanese_text
+            )
+            code.train += _render(
+                tpl, config=self.config, training=True, test=False, cols_japanese_text=cols_japanese_text
+            )
+            code.predict += _render(
+                tpl, config=self.config, training=False, test=True, cols_japanese_text=cols_japanese_text
+            )
+
+        cols_one_value_only = df.columns[df.nunique(dropna=False) == 1].tolist()
+        if cols_one_value_only:
+            df = df.drop(cols_one_value_only, axis=1)
+            tpl = template_env.get_template("drop_one_value_columns.py.jinja")
+            code.validation += _render(tpl, training=True, test=True, cols_one_value_only=cols_one_value_only)
+            code.test += _render(tpl, training=True, test=True, cols_one_value_only=cols_one_value_only)
+            code.train += _render(tpl, training=True, test=False, cols_one_value_only=cols_one_value_only)
+            code.predict += _render(tpl, training=False, test=True, cols_one_value_only=cols_one_value_only)
 
         dataset.training_dataframe = df
 
