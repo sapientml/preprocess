@@ -77,7 +77,18 @@ def _render(tpl, *args, **kwargs):
 
 
 def check_column_language(df: pd.DataFrame) -> list[str]:
-    # suppress meaningless warning when model loading
+    """This function is checking the language of column using fasttext.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+
+    Returns
+    -------
+    col_language_dict : list[str]
+        Return list of all the column of specific language.
+
+    """
     os.makedirs(Path(os.path.dirname(__file__)) / "lib", exist_ok=True)
     model_path = Path(os.path.dirname(__file__)) / "lib" / "lid.176.bin"
     if not model_path.exists():
@@ -105,6 +116,26 @@ def check_column_language(df: pd.DataFrame) -> list[str]:
 
 
 def tokenize(text, use_pos_list, use_word_stemming, tokenizer):
+    """tokenize.
+
+    Parameters
+    ----------
+    text : str
+    use_pos_list : list[str]
+       List of parts-of-speech to be used during text analysis.
+       This variable is used for japanese texts analysis.
+       Select the part of speech below.
+       "名詞", "動詞", "形容詞", "形容動詞", "副詞"
+    use_word_stemming : bool
+       Specify whether or not word stemming is used.
+       This variable is used for japanese texts analysis.
+    tokenizer : MeCab tokenizer
+
+    Returns
+    -------
+    terms : list[str]
+
+    """
     node = tokenizer.parseToNode(text)
     terms = []
     while node:
@@ -127,6 +158,18 @@ def tokenize(text, use_pos_list, use_word_stemming, tokenizer):
 
 
 def check_cols_has_symbols(columns: list) -> list[str]:
+    """check_cols_has_symbols.
+
+    Parameters
+    ----------
+    columns : list
+
+    Returns
+    -------
+    cols_has_symbols : list[str]
+        Return the list of column that has symbols.
+
+    """
     cols_has_symbols = []
     for col in columns:
         if INHIBITED_SYMBOL_PATTERN.search(col):
@@ -135,6 +178,18 @@ def check_cols_has_symbols(columns: list) -> list[str]:
 
 
 def remove_symbols(column_name: str) -> str:
+    """remove_symbols.
+
+    Parameters
+    ----------
+    column_name : str
+
+    Returns
+    -------
+    column_name : str
+        Return coulum name after removing symbols.
+
+    """
     return INHIBITED_SYMBOL_PATTERN.sub("", column_name)
 
 
@@ -143,6 +198,25 @@ class Preprocess(CodeBlockGenerator):
         self.config = PreprocessConfig(**kwargs)
 
     def generate_code(self, dataset: Dataset, task: Task) -> Tuple[Dataset, Code]:
+        """generate_code.
+
+        This function will update dataset by removing special symbols, mixed-type column and
+        replacing 'inf' with 'nan' for meta feature calculation and handling Japanese text columns
+        using MeCab libarary.
+
+        Parameters
+        ----------
+        dataset : Dataset
+           Object of Dataset class containing the details of dataset.
+        task : Task
+           Object of Task class containing the details of task.
+
+        Returns
+        -------
+        dataset, code : Tuple[Dataset, Code]
+            Return dataset after droping the unwanted columns.
+
+        """
         code = Code()
         df = pd.concat(dataset.get_dataframes()).reset_index(drop=True)
 
