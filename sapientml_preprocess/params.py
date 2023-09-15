@@ -4,7 +4,7 @@ from sapientml.params import Config
 
 
 class PreprocessConfig(Config):
-    """PreprocessConfig.
+    """Configuration arguments for sapientml_preprocess.Preprocess class.
 
     Attributes
     ----------

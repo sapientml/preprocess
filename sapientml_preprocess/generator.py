@@ -77,7 +77,7 @@ def _render(tpl, *args, **kwargs):
 
 
 def check_column_language(df: pd.DataFrame) -> list[str]:
-    """This function is checking the language of column using fasttext.
+    """This function checks the language of column using fasttext.
 
     Parameters
     ----------
@@ -198,7 +198,7 @@ class Preprocess(CodeBlockGenerator):
         self.config = PreprocessConfig(**kwargs)
 
     def generate_code(self, dataset: Dataset, task: Task) -> Tuple[Dataset, Code]:
-        """generate_code.
+        """Generate code of rule-based preprocessing.
 
         This function will update dataset by removing special symbols, mixed-type column and
         replacing 'inf' with 'nan' for meta feature calculation and handling Japanese text columns
@@ -213,9 +213,10 @@ class Preprocess(CodeBlockGenerator):
 
         Returns
         -------
-        dataset, code : Tuple[Dataset, Code]
-            Return dataset after droping the unwanted columns.
-
+        dataset: Dataset
+            Dataset after preprocessing.
+        code: Code
+            Code of the preprocessing.
         """
         code = Code()
         df = pd.concat(dataset.get_dataframes()).reset_index(drop=True)
