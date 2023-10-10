@@ -19,6 +19,7 @@ from typing import Tuple
 
 import fasttext
 import MeCab
+import ipadic
 import numpy as np
 import pandas as pd
 import requests
@@ -292,7 +293,7 @@ class Preprocess(CodeBlockGenerator):
         column_language_dict = check_column_language(df.drop(task.target_columns, axis=1))
         cols_japanese_text = [key for key, val in column_language_dict.items() if val == "ja"]
         if cols_japanese_text:
-            tokenizer = MeCab.Tagger()
+            tokenizer = MeCab.Tagger(ipadic.MECAB_ARGS)
             for col in cols_japanese_text:
                 df[col] = df[col].fillna("")
                 df[col] = df[col].apply(

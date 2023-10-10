@@ -1,6 +1,7 @@
 # HANDLE JAPANESE TEXT
 import MeCab
-tokenizer = MeCab.Tagger()
+import ipadic
+tokenizer = MeCab.Tagger(ipadic.MECAB_ARGS)
 use_pos_list = {{ config.use_pos_list }}
 use_word_stemming = {{ config.use_word_stemming }}
 def tokenize(text, use_pos_list, use_word_stemming, tokenizer):
