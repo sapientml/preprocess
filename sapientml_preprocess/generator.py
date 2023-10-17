@@ -18,8 +18,8 @@ from pathlib import Path
 from typing import Tuple
 
 import fasttext
-import MeCab
 import ipadic
+import MeCab
 import numpy as np
 import pandas as pd
 import requests
