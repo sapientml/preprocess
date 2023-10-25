@@ -266,7 +266,6 @@ class Preprocess(CodeBlockGenerator):
             if(str(df[col].dtype) in "object" and infer_dtype(df[col],skipna=True) in "mixed" and not _is_date_column(df[col])):
                 datetime_astype_str.append(col)
             cols_numeric_and_string.append(col)
-            cols_numeric_and_string.append(col)
             only_str = col + "__str"
             only_num = col + "__num"
             df[only_str] = np.where(pd.to_numeric(df[col], errors="coerce").isnull(), df[col], np.nan)
