@@ -263,7 +263,11 @@ class Preprocess(CodeBlockGenerator):
         datetime_astype_str = []
         cols_numeric_and_string = []
         for col in mix_typed_cols:
-            if(str(df[col].dtype) in "object" and infer_dtype(df[col],skipna=True) in "mixed" and not _is_date_column(df[col])):
+            if (
+                str(df[col].dtype) in "object"
+                and infer_dtype(df[col], skipna=True) in "mixed"
+                and not _is_date_column(df[col])
+            ):
                 datetime_astype_str.append(col)
             cols_numeric_and_string.append(col)
             only_str = col + "__str"
@@ -274,10 +278,34 @@ class Preprocess(CodeBlockGenerator):
             df = df.drop(col, axis=1)
         if cols_numeric_and_string:
             tpl = template_env.get_template("handle_mixed_typed_columns.py.jinja")
-            code.validation += _render(tpl, training=True, test=True, cols_numeric_and_string=cols_numeric_and_string,datetime_astype_str=datetime_astype_str)
-            code.test += _render(tpl, training=True, test=True, cols_numeric_and_string=cols_numeric_and_string,datetime_astype_str=datetime_astype_str)
-            code.train += _render(tpl, training=True, test=False, cols_numeric_and_string=cols_numeric_and_string,datetime_astype_str=datetime_astype_str)
-            code.predict += _render(tpl, training=False, test=True, cols_numeric_and_string=cols_numeric_and_string,datetime_astype_str=datetime_astype_str)
+            code.validation += _render(
+                tpl,
+                training=True,
+                test=True,
+                cols_numeric_and_string=cols_numeric_and_string,
+                datetime_astype_str=datetime_astype_str,
+            )
+            code.test += _render(
+                tpl,
+                training=True,
+                test=True,
+                cols_numeric_and_string=cols_numeric_and_string,
+                datetime_astype_str=datetime_astype_str,
+            )
+            code.train += _render(
+                tpl,
+                training=True,
+                test=False,
+                cols_numeric_and_string=cols_numeric_and_string,
+                datetime_astype_str=datetime_astype_str,
+            )
+            code.predict += _render(
+                tpl,
+                training=False,
+                test=True,
+                cols_numeric_and_string=cols_numeric_and_string,
+                datetime_astype_str=datetime_astype_str,
+            )
 
         # meta features must be calculated after replacing inf with nan,
         # becuase the replaced nan must be preprocessed in the generated code.
