@@ -260,15 +260,8 @@ class Preprocess(CodeBlockGenerator):
         # split a columns into 2 columns, one column has only numeric, another columns has only string
         # this operation should be done before calculating meta features
         mix_typed_cols = _confirm_mixed_type(df.drop(task.target_columns, axis=1))
-        datetime_astype_str = []
         cols_numeric_and_string = []
         for col in mix_typed_cols:
-            if (
-                str(df[col].dtype) in "object"
-                and infer_dtype(df[col], skipna=True) in "mixed"
-                and not _is_date_column(df[col])
-            ):
-                datetime_astype_str.append(col)
             cols_numeric_and_string.append(col)
             only_str = col + "__str"
             only_num = col + "__num"
@@ -282,29 +275,25 @@ class Preprocess(CodeBlockGenerator):
                 tpl,
                 training=True,
                 test=True,
-                cols_numeric_and_string=cols_numeric_and_string,
-                datetime_astype_str=datetime_astype_str,
+                cols_numeric_and_string=cols_numeric_and_string
             )
             code.test += _render(
                 tpl,
                 training=True,
                 test=True,
-                cols_numeric_and_string=cols_numeric_and_string,
-                datetime_astype_str=datetime_astype_str,
+                cols_numeric_and_string=cols_numeric_and_string
             )
             code.train += _render(
                 tpl,
                 training=True,
                 test=False,
-                cols_numeric_and_string=cols_numeric_and_string,
-                datetime_astype_str=datetime_astype_str,
+                cols_numeric_and_string=cols_numeric_and_string
             )
             code.predict += _render(
                 tpl,
                 training=False,
                 test=True,
-                cols_numeric_and_string=cols_numeric_and_string,
-                datetime_astype_str=datetime_astype_str,
+                cols_numeric_and_string=cols_numeric_and_string
             )
 
         # meta features must be calculated after replacing inf with nan,
