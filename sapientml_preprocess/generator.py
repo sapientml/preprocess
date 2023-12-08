@@ -265,6 +265,7 @@ class Preprocess(CodeBlockGenerator):
             only_str = col + "__str"
             only_num = col + "__num"
             df[only_str] = np.where(pd.to_numeric(df[col], errors="coerce").isnull(), df[col], np.nan)
+            df[only_str] = np.where(df[only_str].notnull(), df[only_str].astype(str), np.nan)
             # without .astype(float), cannot recongnize as `int` or `float`, leading to generate inappropriate code snippet
             df[only_num] = np.where(pd.to_numeric(df[col], errors="coerce").isnull(), np.nan, df[col]).astype(float)
             df = df.drop(col, axis=1)
