@@ -225,6 +225,7 @@ class Preprocess(CodeBlockGenerator):
         # Remove special symbols that interfere with visualization and model training
         cols_has_symbols = []
         cols_has_symbols = check_cols_has_symbols(df.columns.to_list())
+        cols_has_symbols_target = task.target_columns
         if cols_has_symbols:
             logger.warning(
                 f"Symbols that inhibit training and visualization will be removed from column name {str(cols_has_symbols)}."
@@ -234,10 +235,10 @@ class Preprocess(CodeBlockGenerator):
                 remove_symbols(col) if col in cols_has_symbols else col for col in task.target_columns
             ]
             tpl = template_env.get_template("rename_columns.py.jinja")
-            code.validation += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols)
-            code.test += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols)
-            code.train += _render(tpl, training=True, test=False, cols_has_symbols=cols_has_symbols)
-            code.predict += _render(tpl, training=False, test=True, cols_has_symbols=cols_has_symbols)
+            code.validation += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols, cols_has_symbols_target=cols_has_symbols_target)
+            code.test += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols, cols_has_symbols_target=cols_has_symbols_target)
+            code.train += _render(tpl, training=True, test=False, cols_has_symbols=cols_has_symbols, cols_has_symbols_target=cols_has_symbols_target)
+            code.predict += _render(tpl, training=False, test=True, cols_has_symbols=cols_has_symbols, cols_has_symbols_target=cols_has_symbols_target)
 
         # handle list(tuple, dict) value in dataframe.
         # in generated scripts, visualisation will be executed before pre-processing such as handle mixed-type.
