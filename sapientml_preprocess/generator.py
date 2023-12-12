@@ -235,10 +235,34 @@ class Preprocess(CodeBlockGenerator):
                 remove_symbols(col) if col in cols_has_symbols else col for col in task.target_columns
             ]
             tpl = template_env.get_template("rename_columns.py.jinja")
-            code.validation += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols, cols_has_symbols_target=cols_has_symbols_target)
-            code.test += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols, cols_has_symbols_target=cols_has_symbols_target)
-            code.train += _render(tpl, training=True, test=False, cols_has_symbols=cols_has_symbols, cols_has_symbols_target=cols_has_symbols_target)
-            code.predict += _render(tpl, training=False, test=True, cols_has_symbols=cols_has_symbols, cols_has_symbols_target=cols_has_symbols_target)
+            code.validation += _render(
+                tpl,
+                training=True,
+                test=True,
+                cols_has_symbols=cols_has_symbols,
+                cols_has_symbols_target=cols_has_symbols_target,
+            )
+            code.test += _render(
+                tpl,
+                training=True,
+                test=True,
+                cols_has_symbols=cols_has_symbols,
+                cols_has_symbols_target=cols_has_symbols_target,
+            )
+            code.train += _render(
+                tpl,
+                training=True,
+                test=False,
+                cols_has_symbols=cols_has_symbols,
+                cols_has_symbols_target=cols_has_symbols_target,
+            )
+            code.predict += _render(
+                tpl,
+                training=False,
+                test=True,
+                cols_has_symbols=cols_has_symbols,
+                cols_has_symbols_target=cols_has_symbols_target,
+            )
 
         # handle list(tuple, dict) value in dataframe.
         # in generated scripts, visualisation will be executed before pre-processing such as handle mixed-type.
@@ -272,30 +296,10 @@ class Preprocess(CodeBlockGenerator):
             df = df.drop(col, axis=1)
         if cols_numeric_and_string:
             tpl = template_env.get_template("handle_mixed_typed_columns.py.jinja")
-            code.validation += _render(
-                tpl,
-                training=True,
-                test=True,
-                cols_numeric_and_string=cols_numeric_and_string
-            )
-            code.test += _render(
-                tpl,
-                training=True,
-                test=True,
-                cols_numeric_and_string=cols_numeric_and_string
-            )
-            code.train += _render(
-                tpl,
-                training=True,
-                test=False,
-                cols_numeric_and_string=cols_numeric_and_string
-            )
-            code.predict += _render(
-                tpl,
-                training=False,
-                test=True,
-                cols_numeric_and_string=cols_numeric_and_string
-            )
+            code.validation += _render(tpl, training=True, test=True, cols_numeric_and_string=cols_numeric_and_string)
+            code.test += _render(tpl, training=True, test=True, cols_numeric_and_string=cols_numeric_and_string)
+            code.train += _render(tpl, training=True, test=False, cols_numeric_and_string=cols_numeric_and_string)
+            code.predict += _render(tpl, training=False, test=True, cols_numeric_and_string=cols_numeric_and_string)
 
         # meta features must be calculated after replacing inf with nan,
         # becuase the replaced nan must be preprocessed in the generated code.
