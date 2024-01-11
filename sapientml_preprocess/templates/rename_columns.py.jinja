@@ -2,11 +2,11 @@
 import re
 cols_has_symbols = {{ cols_has_symbols }}
 inhibited_symbol_pattern = re.compile(r"[\{\}\[\]\",:<'\\]+")
-{% if training %}
 rename_symbol_cols = {col: inhibited_symbol_pattern.sub("", col) if col in cols_has_symbols else col in cols_has_symbols for col in cols_has_symbols }
-rename_symbol_cols = {v: k for k, v in rename_symbol_cols.items()}
-train_dataset = train_dataset.rename(columns=lambda col: inhibited_symbol_pattern.sub("", col) if col in cols_has_symbols else col)
+{% if training %}
+train_dataset = train_dataset.rename(columns=rename_symbol_cols)
 {% endif %}
 {% if test %}
-test_dataset = test_dataset.rename(columns=lambda col: inhibited_symbol_pattern.sub("", col) if col in cols_has_symbols else col)
+test_dataset = test_dataset.rename(columns=rename_symbol_cols)
 {% endif %}
+rename_symbol_cols = {v: k for k, v in rename_symbol_cols.items()}
