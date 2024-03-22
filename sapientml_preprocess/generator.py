@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import os
 import re
 from pathlib import Path
@@ -31,7 +32,7 @@ from sapientml_preprocess.params import PreprocessConfig
 
 logger = setup_logger()
 
-INHIBITED_SYMBOL_PATTERN = re.compile(r"[\{\}\[\]\",:<'\\]+")
+INHIBITED_SYMBOL_PATTERN = re.compile(r"[\{\}\[\]\",:<'\\\+]+")
 
 
 template_env = Environment(loader=FileSystemLoader(f"{os.path.dirname(__file__)}/templates"), trim_blocks=True)
@@ -229,15 +230,46 @@ class Preprocess(CodeBlockGenerator):
             logger.warning(
                 f"Symbols that inhibit training and visualization will be removed from column name {str(cols_has_symbols)}."
             )
+            org_df_column = df.columns.values
+            org_target_column = task.target_columns
             df = df.rename(columns=lambda col: remove_symbols(col) if col in cols_has_symbols else col)
             task.target_columns = [
                 remove_symbols(col) if col in cols_has_symbols else col for col in task.target_columns
             ]
+            same_column = {k: v for k, v in collections.Counter(list(df.columns.values)).items() if v > 1}
+            rename_dict = {}
+            if len(same_column) != 0:
+                for target in same_column.keys():
+                    rename_dict = {}
+                    rename_target_col = []
+                    df_cols = list(df.columns.values)
+                    i = 1
+                    for col in df_cols:
+                        if target in col:
+                            rename_dict[org_df_column[len(rename_dict)]] = str(col + str(i))
+                            i = i + 1
+                        else:
+                            rename_dict[org_df_column[len(rename_dict)]] = col
+                    df = df.set_axis(list(rename_dict.values()), axis=1)
+                    i = 1
+                    for col in org_target_column:
+                        rename_target_col.append(rename_dict[col])
+
+                    task.target_columns = rename_target_col
+
             tpl = template_env.get_template("rename_columns.py.jinja")
-            code.validation += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols)
-            code.test += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols)
-            code.train += _render(tpl, training=True, test=False, cols_has_symbols=cols_has_symbols)
-            code.predict += _render(tpl, training=False, test=True, cols_has_symbols=cols_has_symbols)
+            code.validation += _render(
+                tpl, training=True, test=True, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
+            )
+            code.test += _render(
+                tpl, training=True, test=True, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
+            )
+            code.train += _render(
+                tpl, training=True, test=False, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
+            )
+            code.predict += _render(
+                tpl, training=False, test=True, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
+            )
 
         # handle list(tuple, dict) value in dataframe.
         # in generated scripts, visualisation will be executed before pre-processing such as handle mixed-type.

@@ -1,8 +1,12 @@
 # Remove special symbols that interfere with visualization and model training
 import re
 cols_has_symbols = {{ cols_has_symbols }}
-inhibited_symbol_pattern = re.compile(r"[\{\}\[\]\",:<'\\]+")
-rename_symbol_cols = {col: inhibited_symbol_pattern.sub("", col) if col in cols_has_symbols else col in cols_has_symbols for col in cols_has_symbols }
+rename_dict = {{ rename_dict }}
+inhibited_symbol_pattern = re.compile(r"[\{\}\[\]\",:<'\\\+]+")
+if len(rename_dict) == 0 :
+    rename_symbol_cols = {col: inhibited_symbol_pattern.sub("", col) if col in cols_has_symbols else col in cols_has_symbols for col in cols_has_symbols }
+else:
+    rename_symbol_cols = rename_dict
 {% if training %}
 train_dataset = train_dataset.rename(columns=rename_symbol_cols)
 {% endif %}
