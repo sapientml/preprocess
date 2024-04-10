@@ -1,9 +1,7 @@
 import numpy as np
-cols_has_none = {{ cols_has_none}}
-for col in cols_has_none:
 {% if training %}
-    train_dataset[col] = train_dataset[col].replace([None], np.nan)
+train_dataset = train_dataset.replace([None], np.nan)
 {% endif %}
 {% if test %}
-    test_dataset[col] = test_dataset[col].replace([None], np.nan)
+test_dataset = test_dataset.replace([None], np.nan)
 {% endif %}
