@@ -231,31 +231,25 @@ class Preprocess(CodeBlockGenerator):
                 f"Symbols that inhibit training and visualization will be removed from column name {str(cols_has_symbols)}."
             )
             org_df_column = df.columns.values
-            org_target_column = task.target_columns
+            org_target_columns = task.target_columns
+            no_symbol_columns = [ col for col in df.columns.values if col not in cols_has_symbols ]
             df = df.rename(columns=lambda col: remove_symbols(col) if col in cols_has_symbols else col)
             task.target_columns = [
                 remove_symbols(col) if col in cols_has_symbols else col for col in task.target_columns
             ]
-            same_column = {k: v for k, v in collections.Counter(list(df.columns.values)).items() if v > 1}
             rename_dict = {}
-            if len(same_column) != 0:
-                for target in same_column.keys():
-                    rename_dict = {}
-                    rename_target_col = []
-                    df_cols = list(df.columns.values)
-                    i = 1
-                    for col in df_cols:
-                        if target in col:
-                            rename_dict[org_df_column[len(rename_dict)]] = str(col + str(i))
-                            i = i + 1
-                        else:
-                            rename_dict[org_df_column[len(rename_dict)]] = col
-                    df = df.set_axis(list(rename_dict.values()), axis=1)
-                    i = 1
-                    for col in org_target_column:
-                        rename_target_col.append(rename_dict[col])
-
-                    task.target_columns = rename_target_col
+            if df.columns.duplicated().any() :
+                same_column = {k: v for k, v in collections.Counter(list(df.columns.values)).items() if v > 1 and k in no_symbol_columns}
+                for target, org_column in zip(df.columns.to_list(), org_df_column.tolist()):
+                    if target in same_column.keys():
+                        rename_dict[org_column] = target + str(same_column[target] - 1)
+                        same_column[target] = same_column[target] - 1
+                    else:
+                        rename_dict[org_column] = target
+                    
+                df = df.set_axis(list(rename_dict.values()), axis=1)
+                # task.target_columns = [col for col in list(rename_dict.values()) if task.target_columns in list(rename_dict.values())]
+                task.target_columns = [rename_dict[col] for col in org_target_columns]
 
             tpl = template_env.get_template("rename_columns.py.jinja")
             code.validation += _render(
