@@ -265,6 +265,15 @@ class Preprocess(CodeBlockGenerator):
                 tpl, training=False, test=True, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
             )
 
+        # If None is intentionally inserted in the data, an error occurs, so we have added an action to change None to "np.nan."
+        if df.isin([None]).any(axis=None):
+            df = df.replace([None], np.nan)
+            tpl = template_env.get_template("none_has_columns.py.jinja")
+            code.validation += _render(tpl, training=True, test=True)
+            code.test += _render(tpl, training=True, test=True)
+            code.train += _render(tpl, training=True, test=False)
+            code.predict += _render(tpl, training=False, test=True)
+
         # handle list(tuple, dict) value in dataframe.
         # in generated scripts, visualisation will be executed before pre-processing such as handle mixed-type.
         # so, need to check before mixed-type column names are added to suppress errors during visualisation.
