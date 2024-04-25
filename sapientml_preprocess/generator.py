@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import os
 import re
 from pathlib import Path
@@ -229,15 +230,43 @@ class Preprocess(CodeBlockGenerator):
             logger.warning(
                 f"Symbols that inhibit training and visualization will be removed from column name {str(cols_has_symbols)}."
             )
+            org_df_column = df.columns.values
+            org_target_columns = task.target_columns
+            no_symbol_columns = [col for col in df.columns.values if col not in cols_has_symbols]
             df = df.rename(columns=lambda col: remove_symbols(col) if col in cols_has_symbols else col)
             task.target_columns = [
                 remove_symbols(col) if col in cols_has_symbols else col for col in task.target_columns
             ]
+            rename_dict = {}
+            if df.columns.duplicated().any():
+                same_column = {
+                    k: v
+                    for k, v in collections.Counter(list(df.columns.values)).items()
+                    if v > 1 and k in no_symbol_columns
+                }
+                for target, org_column in zip(df.columns.to_list(), org_df_column.tolist()):
+                    if target in same_column.keys():
+                        rename_dict[org_column] = target + str(same_column[target] - 1)
+                        same_column[target] = same_column[target] - 1
+                    else:
+                        rename_dict[org_column] = target
+
+                df = df.set_axis(list(rename_dict.values()), axis=1)
+                task.target_columns = [rename_dict[col] for col in org_target_columns]
+
             tpl = template_env.get_template("rename_columns.py.jinja")
-            code.validation += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols)
-            code.test += _render(tpl, training=True, test=True, cols_has_symbols=cols_has_symbols)
-            code.train += _render(tpl, training=True, test=False, cols_has_symbols=cols_has_symbols)
-            code.predict += _render(tpl, training=False, test=True, cols_has_symbols=cols_has_symbols)
+            code.validation += _render(
+                tpl, training=True, test=True, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
+            )
+            code.test += _render(
+                tpl, training=True, test=True, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
+            )
+            code.train += _render(
+                tpl, training=True, test=False, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
+            )
+            code.predict += _render(
+                tpl, training=False, test=True, cols_has_symbols=cols_has_symbols, rename_dict=rename_dict
+            )
 
         # If None is intentionally inserted in the data, an error occurs, so we have added an action to change None to "np.nan."
         if df.isin([None]).any(axis=None):
