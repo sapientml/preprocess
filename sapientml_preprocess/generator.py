@@ -32,7 +32,7 @@ from sapientml_preprocess.params import PreprocessConfig
 
 logger = setup_logger()
 
-INHIBITED_SYMBOL_PATTERN = re.compile(r"[\{\}\[\]\",:<'\\\+]+")
+INHIBITED_SYMBOL_PATTERN = re.compile(r"[\{\}\[\]\",:<'\\]+")
 
 
 template_env = Environment(loader=FileSystemLoader(f"{os.path.dirname(__file__)}/templates"), trim_blocks=True)
