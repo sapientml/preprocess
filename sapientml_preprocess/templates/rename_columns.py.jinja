@@ -1,7 +1,9 @@
 # Remove special symbols that interfere with visualization and model training
 import re
 cols_has_symbols = {{ cols_has_symbols }}
+{% if rename_dict %}
 rename_dict = {{ rename_dict }}
+{% endif %}
 inhibited_symbol_pattern = re.compile(r"[\{\}\[\]\",:<'\\\+]+")
 {% if rename_dict %}
 rename_symbol_cols = rename_dict
